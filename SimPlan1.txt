@@ -1,0 +1,6 @@
+# Simulation Plan 1
+
+1. Train a convnet on MNIST  
+2. Save the trained network  
+3. Write function that occludes patch of an image.  
+4. Select 
