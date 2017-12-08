@@ -104,3 +104,5 @@ ipynb_checkpoints/*
 MNIST_data/*
 heatmaps*
 1stlayer_act/*
+.idea/*
+mnist_trad/*
