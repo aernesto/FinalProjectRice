@@ -107,3 +107,4 @@ heatmaps*
 1stlayer_act/*
 .idea/*
 mnist_trad/*
+last_code/MNIST_data/*
