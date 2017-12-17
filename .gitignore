@@ -102,6 +102,7 @@ ENV/
 
 ipynb_checkpoints/*
 MNIST_data/*
+last_code/MNIST_data/*
 heatmaps*
 1stlayer_act/*
 .idea/*
