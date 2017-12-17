@@ -26,7 +26,7 @@ import pickle
 
 
 old_stdout = sys.stdout
-log_file = open("results.log","w")
+log_file = open("results_adrian.log", "w")
 print("saving printed output into a log file: ")
 sys.stdout = log_file
 
@@ -180,7 +180,7 @@ from array_helper_functions import ind2sub, ind2sub_all, sub2ind, sub2ind_all, m
 inds_dict = get_inds(labels0)
 ##############################
 def get_prediction_np(images, labels1, keep_prob_float):
-    net_output      = sess.run(y_conv, feed_dict = 
+    net_output      = sess.run(y_conv, feed_dict =
                               {x        : images.reshape((-1, 784)),
                                y_       : labels1,
                                keep_prob: keep_prob_float})
@@ -188,30 +188,30 @@ def get_prediction_np(images, labels1, keep_prob_float):
     #print("shape: ", net_output.shape)
     #print(net_output)
     #print(2*'\n')
-    
+
     net_pred_label  = np.argmax(net_output, axis = 1)
     #print("net_pred_label: ")
     #print("shape: ", net_pred_label.shape)
     #print(net_pred_label)
     #print(2*'\n')
-    
+
     true_label      = np.argmax(labels1, axis = 1)
     #print("true_label: ")
     #print("shape: ", true_label.shape)
     #print(true_label)
     #print(2*'\n')
-    
+
     correct_pred_bool = np.equal(net_pred_label, true_label)
     #print("correct_pred_bool: ")
     #print(correct_pred_bool.shape)
     #print(correct_pred_bool)
     #print(2*'\n')
-    
+
     correct_pred = np.uint32(correct_pred_bool)
     #print('correct_pred')
     #print(correct_pred.shape)
     #print(correct_pred)
-    
+
     accuracy     = np.mean(correct_pred)
     #print('accuracy')
     #print(accuracy)
@@ -219,9 +219,9 @@ def get_prediction_np(images, labels1, keep_prob_float):
 
 def get_accuracy_tf(images, one_hot_labels, keep_prob_float):
     images_placeholder = images.reshape(-1,images.shape[1]*images.shape[2])
-    acc                = sess.run(accuracy, 
+    acc                = sess.run(accuracy,
                                   feed_dict={x         : images_placeholder,
-                                             y_        : one_hot_labels, 
+                                             y_        : one_hot_labels,
                                              keep_prob : keep_prob_float})
     return acc
 
@@ -238,7 +238,7 @@ def min_max_acc_val_pins(acc_arr, pins_arr):
     print("max accuracy (i,j)-indices: ")
     print(max_ac_sub)
     print('\n')
-    min_pins_arr = pins_arr[min_ac_ind] 
+    min_pins_arr = pins_arr[min_ac_ind]
     max_pins_arr = pins_arr[max_ac_ind]
     print("min accuracy patch pins (i,j)-pixel indices on image:")
     print(min_pins_arr)
@@ -246,7 +246,7 @@ def min_max_acc_val_pins(acc_arr, pins_arr):
     print(max_pins_arr)
     print('\n')
     return (min_acc_arr, np.uint32(min_pins_arr), max_acc_arr, np.uint32(max_pins_arr))
-##################################################################################
+# ##################################################################################
 def occlusion_accuracy_analyzer(images, labels1, patch_size, strides, sess):
     (M1,M2) = get_occ_dims(strides, patch_size)
     M       = M1*M2
@@ -256,121 +256,121 @@ def occlusion_accuracy_analyzer(images, labels1, patch_size, strides, sess):
     #M = len(givenOcclusions_stackImages)
     sub_list   = ind2sub_all((M1,M2))
     #run "accuracy" node in the computational graph for each stack of "givenOcclusions_stackImages"
-    for i in range(M): #we want to eval accuracy for each (occluded) stack seperately  
+    for i in range(M): #we want to eval accuracy for each (occluded) stack seperately
         (_, acc_arr[sub_list[i][0], sub_list[i][1]]) =         get_prediction_np(givenOcclusions_stackImages[i], labels1, 1.0)
-  
+
     print(np.around(acc_arr, decimals = 2))
     print('\n')
     return np.around(acc_arr, decimals = 2)
 
 def occlusion_accuracy_analyzer_digitwise(images, labels1, inds_dict, patch_size, strides):
     (M1, M2)    = get_occ_dims(strides, patch_size)
-    
-    #create an array to store accuracies of stack of occluded images per digit class 
+
+    #create an array to store accuracies of stack of occluded images per digit class
     acc_arr     = np.zeros((10,M1,M2))
     #storing the value and index of min and maxaccuracy for each digit
     min_acc_arr = np.zeros((10,2))
     max_acc_arr = np.zeros((10,2))
-    
+
     #pins array
     print(images.shape)
     arr_shape     = [images.shape[1], images.shape[2]]
     pins_arr      = get_patch_pins(arr_shape, strides, patch_size)
     #get pins, i.e. the (i,j)-index of 4 corners of each patch
     #the (i,j)-indicies of the 4 corners of the patch where min accuracy and max accuracy happens
-    min_pins_arr  = np.zeros((10, 2, 2))  
+    min_pins_arr  = np.zeros((10, 2, 2))
     max_pins_arr  = np.zeros((10, 2, 2))
     for d in range(10):
         print('digit %d: '%d)
-        inds        = inds_dict[d] #get the indices of all digit = d 
+        inds        = inds_dict[d] #get the indices of all digit = d
         images_d    = images[inds]
         labels_d    = labels1[inds]
 
         acc_arr[d]  = occlusion_accuracy_analyzer(images_d, labels_d, patch_size, strides, sess)
-        
+
         #min and max accuracy values, indices and their patch pins in our images for acc_array
         #This gives us the most and least vulnarable locations in the image to occlusions
         #val and index
         (min_acc_arr[d], min_pins_arr[d],         max_acc_arr[d], max_pins_arr[d]) = min_max_acc_val_pins(acc_arr[d], pins_arr)
-    
+#
     return (acc_arr, min_acc_arr, np.uint32(min_pins_arr), max_acc_arr, np.uint32(max_pins_arr))
-##########################################################################################
-#one-to-one correspondence
-#min_pin  <---------------------> digit 
-## extract the labels that network classifies to, for each min_pin corresponding to each digit
-
-
-
-# In[7]:
-
-
-######################################################################
-######################################################################
-#Accuracy-Occlusion Analysis restricted to correctly_classified_digits
-######################################################################
-######################################################################
-
-
-# In[8]:
-
-
-######################################################################
-######################################################################
-#Accuracy-Occlusion Analysis on the entire test set, i.e. not restricting to correctly classified images
-######################################################################
-######################################################################
-
-
-# In[9]:
-
-
-########################################
-########################################
-#before occlusion
-print("before occlusion:")
-#accuracy on entire test set
-print("accuracy on test set with no occlusion : ")
-print(np.around(sess.run(accuracy, feed_dict={x:images.reshape((-1,784)),
-                                    y_       : labels1, 
-                                    keep_prob: 1.0}), decimals = 2))
-print('\n')
-#accuracy per class
-acc_arr = np.zeros((10,1))
-for d in range(10):
-    inds_d     = inds_dict[d]
-    acc_arr[d] = sess.run(accuracy, feed_dict={x        : images[inds_d].reshape((-1,784)),
-                                               y_       : labels1[inds_d], 
-                                               keep_prob: 1.0})
-print("accuracy per class on test set with no occlusion : ")
-print(np.around(acc_arr, decimals = 2))
-np.save('acc_arr', np.around(acc_arr, decimals = 2))
-print(2*'\n')
-
-#################################
-###################################
-#after occlusion
-print("after occlusion")
+# ##########################################################################################
+# #one-to-one correspondence
+# #min_pin  <---------------------> digit
+# ## extract the labels that network classifies to, for each min_pin corresponding to each digit
+#
+#
+#
+# # In[7]:
+#
+#
+# ######################################################################
+# ######################################################################
+# #Accuracy-Occlusion Analysis restricted to correctly_classified_digits
+# ######################################################################
+# ######################################################################
+#
+#
+# # In[8]:
+#
+#
+# ######################################################################
+# ######################################################################
+# #Accuracy-Occlusion Analysis on the entire test set, i.e. not restricting to correctly classified images
+# ######################################################################
+# ######################################################################
+#
+#
+# # In[9]:
+#
+#
+# ########################################
+# ########################################
+# #before occlusion
+# print("before occlusion:")
+# #accuracy on entire test set
+# print("accuracy on test set with no occlusion : ")
+# print(np.around(sess.run(accuracy, feed_dict={x:images.reshape((-1,784)),
+#                                     y_       : labels1,
+#                                     keep_prob: 1.0}), decimals = 2))
+# print('\n')
+# #accuracy per class
+# acc_arr = np.zeros((10,1))
+# for d in range(10):
+#     inds_d     = inds_dict[d]
+#     acc_arr[d] = sess.run(accuracy, feed_dict={x        : images[inds_d].reshape((-1,784)),
+#                                                y_       : labels1[inds_d],
+#                                                keep_prob: 1.0})
+# print("accuracy per class on test set with no occlusion : ")
+# print(np.around(acc_arr, decimals = 2))
+# np.save('acc_arr', np.around(acc_arr, decimals = 2))
+# print(2*'\n')
+#
+# #################################
+# ###################################
+# #after occlusion
+# print("after occlusion")
 strides      = [1, 1]
 patch_size   = [5, 5]
 arr_shape    = [images.shape[1], images.shape[2]]
 pins_arr     = get_patch_pins(arr_shape, strides, patch_size)
-
-#accuracy on entire test set
-print("accuracy per patch on whole test set : ")
-acc_arr_entire = occlusion_accuracy_analyzer(images, labels1, patch_size, strides, sess)
-(min_acc_arr_entire, min_pins_arr_entire, max_acc_arr_entire, max_pins_arr_entire) = min_max_acc_val_pins(acc_arr_entire, pins_arr)
-
-
-
-#accuracy per class
-print("accuracy per patch per class on test set : ")
-#Analyzing the effect of occlusion by a moving patch on the entire dataset
-(acc_arr, min_acc_arr, min_pins_arr, max_acc_arr, max_pins_arr) = occlusion_accuracy_analyzer_digitwise(images, labels1, inds_dict, patch_size, strides)
-np.save('acc_arr.npy', acc_arr)
-np.save('min_acc_arr.npy', min_acc_arr)
-np.save('min_pins_arr.npy', min_pins_arr)
-np.save('max_acc_arr.npy', max_acc_arr)
-np.save('max_pins_arr.npy', max_pins_arr)
+#
+# #accuracy on entire test set
+# print("accuracy per patch on whole test set : ")
+# acc_arr_entire = occlusion_accuracy_analyzer(images, labels1, patch_size, strides, sess)
+# (min_acc_arr_entire, min_pins_arr_entire, max_acc_arr_entire, max_pins_arr_entire) = min_max_acc_val_pins(acc_arr_entire, pins_arr)
+#
+#
+#
+# #accuracy per class
+# print("accuracy per patch per class on test set : ")
+# #Analyzing the effect of occlusion by a moving patch on the entire dataset
+# (acc_arr, min_acc_arr, min_pins_arr, max_acc_arr, max_pins_arr) = occlusion_accuracy_analyzer_digitwise(images, labels1, inds_dict, patch_size, strides)
+# np.save('acc_arr.npy', acc_arr)
+# np.save('min_acc_arr.npy', min_acc_arr)
+# np.save('min_pins_arr.npy', min_pins_arr)
+# np.save('max_acc_arr.npy', max_acc_arr)
+# np.save('max_pins_arr.npy', max_pins_arr)
 #############################################################################################
 #############################################################################################
 
@@ -412,6 +412,7 @@ def get_occ_preds_labels(images, labels1, inds_dict, min_pins_arr):
         print(pred_labels[d])
     return pred_labels
 
+min_pins_arr = np.load('min_pins_arr.npy')
 pred_labels = get_occ_preds_labels(images, labels1, inds_dict, min_pins_arr)
 
 output = open('pred_labels.pkl', 'wb')
